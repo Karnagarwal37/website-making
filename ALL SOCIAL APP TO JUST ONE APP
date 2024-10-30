@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_MESSAGES 100
+#define MAX_APP_NAME 50
+#define MAX_MESSAGE_SIZE 256
+
+// Structure to hold a single message
+typedef struct {
+    char sender[MAX_APP_NAME]; // Sender's name or app name
+    char content[MAX_MESSAGE_SIZE]; // Message content
+    int timestamp; // Timestamp for the message
+} Message;
+
+// Structure to hold a messaging app
+typedef struct {
+    char appName[MAX_APP_NAME]; // Name of the messaging app
+    Message messages[MAX_MESSAGES]; // Array of messages
+    int messageCount; // Count of messages in this app
+} MessagingApp;
+
+// Structure to manage multiple messaging apps
+typedef struct {
+    MessagingApp apps[MAX_APP_NAME]; // Array of messaging apps
+    int appCount; // Count of apps added
+} MessagingAppContainer;
+
+// Function to initialize the MessagingAppContainer
+void initContainer(MessagingAppContainer* container) {
+    container->appCount = 0;
+}
+
+// Function to add a messaging app
+void addApp(MessagingAppContainer* container, const char* appName) {
+    if (container->appCount < MAX_APP_NAME) {
+        strncpy(container->apps[container->appCount].appName, appName, MAX_APP_NAME);
+        container->apps[container->appCount].messageCount = 0;
+        container->appCount++;
+    } else {
+        printf("App limit reached. Cannot add more apps.\n");
+    }
+}
+
+// Function to send a message in a specific app
+void sendMessage(MessagingAppContainer* container, const char* appName, const char* sender, const char* content) {
+    for (int i = 0; i < container->appCount; i++) {
+        if (strcmp(container->apps[i].appName, appName) == 0) {
+            if (container->apps[i].messageCount < MAX_MESSAGES) {
+                Message* msg = &container->apps[i].messages[container->apps[i].messageCount++];
+                strncpy(msg->sender, sender, MAX_APP_NAME);
+                strncpy(msg->content, content, MAX_MESSAGE_SIZE);
+                msg->timestamp = (int)time(NULL); // Using current time as a timestamp
+            } else {
+                printf("Message limit reached for %s. Cannot send more messages.\n", appName);
+            }
+            return;
+        }
+    }
+    printf("App %s not found.\n", appName);
+}
+
+// Function to display messages from a specific app
+void displayMessages(MessagingAppContainer* container, const char* appName) {
+    for (int i = 0; i < container->appCount; i++) {
+        if (strcmp(container->apps[i].appName, appName) == 0) {
+            printf("Messages in %s:\n", appName);
+            for (int j = 0; j < container->apps[i].messageCount; j++) {
+                Message* msg = &container->apps[i].messages[j];
+                printf("Sender: %s | Message: %s | Timestamp: %d\n", msg->sender, msg->content, msg->timestamp);
+            }
+            return;
+        }
+    }
+    printf("App %s not found.\n", appName);
+}
+
+int main() {
+    MessagingAppContainer container;
+    initContainer(&container);
+
+    // Adding messaging apps
+    addApp(&container, "WhatsApp");
+    addApp(&container, "Telegram");
+    addApp(&container, "Signal");
+
+    // Sending messages
+    sendMessage(&container, "WhatsApp", "Alice", "Hello from WhatsApp!");
+    sendMessage(&container, "Telegram", "Bob", "Hello from Telegram!");
+    sendMessage(&container, "Signal", "Charlie", "Hello from Signal!");
+
+    // Displaying messages
+    displayMessages(&container, "WhatsApp");
+    displayMessages(&container, "Telegram");
+    displayMessages(&container, "Signal");
+
+    return 0;
+}
