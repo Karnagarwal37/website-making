@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define MAX_FRIENDS 10
+#define MAX_NAME_LENGTH 100
+
+// Function to swap two strings
+void swap(char* a, char* b) {
+    char temp[MAX_NAME_LENGTH];
+    strcpy(temp, a);
+    strcpy(a, b);
+    strcpy(b, temp);
+}
+
+// Recursive function to generate permutations
+void generatePermutations(char friends[][MAX_NAME_LENGTH], int start, int end) {
+    if (start == end) {
+        // Print the current permutation
+        for (int i = 0; i <= end; i++) {
+            printf("%s ", friends[i]);
+        }
+        printf("\n");
+    } else {
+        bool appeared[MAX_FRIENDS] = {false}; // Track seen friends to avoid duplicates
+        for (int i = start; i <= end; i++) {
+            // Skip duplicates
+            if (appeared[i - start]) {
+                continue;
+            }
+            appeared[i - start] = true; // Mark this friend as seen
+
+            swap(friends[start], friends[i]); // Swap to create new permutation
+            generatePermutations(friends, start + 1, end); // Recur
+            swap(friends[start], friends[i]); // Backtrack
+        }
+    }
+}
+
+// Function to generate combinations of friends
+void generateCombinations(char friends[][MAX_NAME_LENGTH], int n, int r, int index, char combination[][MAX_NAME_LENGTH], int i) {
+    if (index == r) {
+        // Print the current combination
+        for (int j = 0; j < r; j++) {
+            printf("%s ", combination[j]);
+        }
+        printf("\n");
+        return;
+    }
+
+    // If there are no more friends to pick
+    if (i >= n) {
+        return;
+    }
+
+    // Include the current friend in the combination
+    combination[index] = friends[i];
+    generateCombinations(friends, n, r, index + 1, combination, i + 1);
+
+    // Exclude the current friend from the combination
+    generateCombinations(friends, n, r, index, combination, i + 1);
+}
+
+int main() {
+    char friends[MAX_FRIENDS][MAX_NAME_LENGTH];
+    char combination[MAX_FRIENDS][MAX_NAME_LENGTH]; // To hold combinations
+    int n, r;
+
+    // Input number of friends
+    printf("Enter the number of LinkedIn friends (max %d): ", MAX_FRIENDS);
+    scanf("%d", &n);
+    if (n > MAX_FRIENDS || n <= 0) {
+        printf("Invalid number of friends.\n");
+        return 1;
+    }
+
+    // Input names of friends
+    printf("Enter the names of your LinkedIn friends:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%s", friends[i]);
+    }
+
+    // Generate unique permutations
+    printf("All unique permutations of LinkedIn friends:\n");
+    generatePermutations(friends, 0, n - 1);
+
+    // Input combination size
+    printf("Enter the size of combinations to generate: ");
+    scanf("%d", &r);
+    if (r > n || r <= 0) {
+        printf("Invalid combination size.\n");
+        return 1;
+    }
+
+    // Generate combinations
+    printf("Combinations of size %d:\n", r);
+    generateCombinations(friends, n, r, 0, combination, 0);
+
+    return 0;
+}
